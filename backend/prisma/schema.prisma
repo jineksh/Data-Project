@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Dataset {
+  id        Int              @id @default(autoincrement())
+  name      String           @unique // e.g., "orders.csv"
+  createdAt DateTime         @default(now()) @map("created_at")
+  rules     ValidationRule[]
+
+  @@map("datasets")
+}
+
+
+model ValidationRule {
+  id        Int      @id @default(autoincrement())
+  rule      String   @db.Text // Spark SQL WHERE expression
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  datasetId Int     @map("dataset_id")
+  dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@map("validation_rules")
+}

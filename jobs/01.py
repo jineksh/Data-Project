@@ -1,5 +1,8 @@
-from pyspark.sql import SparkSession
 
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import avg,max,min,count,when,lower,regexp_replace
+
+import time
 
 spark = (
     SparkSession.builder.appName('BajajFinanceData').master("spark://spark-master:7077").getOrCreate()
@@ -14,5 +17,8 @@ df = spark.read.csv(
     inferSchema=True
 )
 
-df = df.filter(df["High Price"] < 40)
+new_df = df.withColumn(
+    "Total Traded Quantity",
+    regexp_replace(df["Total Traded Quantity"],",","")   
+)
 

@@ -15,12 +15,14 @@ datasource db {
 model Dataset {
   id        Int              @id @default(autoincrement())
   name      String           @unique // e.g., "orders.csv"
+  baseName  String
+  ext       String
+  sizeBytes String
   createdAt DateTime         @default(now()) @map("created_at")
   rules     ValidationRule[]
 
   @@map("datasets")
 }
-
 
 model ValidationRule {
   id        Int      @id @default(autoincrement())

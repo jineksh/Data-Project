@@ -3,8 +3,9 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from './provider';
+import { Toaster } from "react-hot-toast";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,9 +35,22 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
 
 
-      <Providers>
-        {children}
-      </Providers>
+        <Providers>
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#0F172A',
+                color: '#F8FAFC',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                border: '1px solid #1E293B'
+              }
+            }}
+          />
+        </Providers>
 
 
       </body>

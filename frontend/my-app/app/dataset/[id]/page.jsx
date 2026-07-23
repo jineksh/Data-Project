@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState,use } from "react";
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import {
     Database,
@@ -20,16 +20,30 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+
 import { useGetDataSetById } from "../../../hooks/apis/dataset/useGetDataSetById.js";
+import { useCreateValidationRule } from '../../../hooks/apis/validationRules/useCreateValidationRule.js';
 
 export default function StandaloneDatasetPage({ params }) {
     const resolvedParams = use(params);
-  const id = resolvedParams?.id;
+    const id = resolvedParams?.id;
 
-    const { data: dataset, isPending, isError, error } = useGetDataSetById(id);
+    // 1. Fetch Dataset Query
+    const {
+        data: dataset,
+        isPending: isDatasetPending,
+        isError: isDatasetError,
+        error: datasetError
+    } = useGetDataSetById(id);
+
+    // 2. Create Rule Mutation
+    const {
+        isPending: isSubmitting,
+        isSuccess,
+        createRuleMutation
+    } = useCreateValidationRule();
 
     const [rawQueries, setRawQueries] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [copied, setCopied] = useState(false);
 
     const parsedQueries = rawQueries
@@ -37,18 +51,22 @@ export default function StandaloneDatasetPage({ params }) {
         .map((q) => q.trim())
         .filter((q) => q.length > 0);
 
-    console.log(parsedQueries)
-
     const handleCopyQuery = () => {
         navigator.clipboard.writeText(rawQueries);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
+    
+    useEffect(() => {
+        if (isSuccess) {
+            setRawQueries('');
+            setCopied(false);
+        }
+    }, [isSuccess]);
+
     const handleSubmitBatch = async () => {
         if (parsedQueries.length === 0 || !dataset) return;
-
-        setIsSubmitting(true);
 
         const payload = {
             datasetId: dataset.id,
@@ -57,18 +75,13 @@ export default function StandaloneDatasetPage({ params }) {
         };
 
         try {
-            setTimeout(() => {
-                setIsSubmitting(false);
-                alert(`${parsedQueries.length} rules saved to DB successfully!`);
-                setRawQueries("");
-            }, 800);
+            await createRuleMutation(payload);
         } catch (err) {
-            console.error("Batch submit failed:", err);
-            setIsSubmitting(false);
+            console.error("Batch submit error:", err);
         }
     };
 
-    if (isPending) {
+    if (isDatasetPending) {
         return (
             <div className="min-h-screen bg-background text-foreground w-full flex flex-col items-center justify-center gap-3">
                 <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
@@ -79,11 +92,11 @@ export default function StandaloneDatasetPage({ params }) {
         );
     }
 
-    if (isError || !dataset) {
+    if (isDatasetError || !dataset) {
         return (
             <div className="min-h-screen bg-background text-foreground w-full p-6 flex flex-col items-center justify-center gap-4">
                 <p className="text-xs font-mono text-destructive">
-                    Failed to load dataset details: {error?.message || "Dataset not found"}
+                    Failed to load dataset details: {datasetError?.message || "Dataset not found"}
                 </p>
                 <Button asChild variant="outline" size="sm" className="h-8 text-xs font-sans">
                     <Link href="/dashboard">

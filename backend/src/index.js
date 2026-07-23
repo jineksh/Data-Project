@@ -3,15 +3,16 @@ import { connectToDatabase } from './config/databse.js'
 import cors from 'cors';
 import "dotenv/config";
 import dataSetRouter from './routes/dataset.route.js'
+import ruleRouter from './routes/rule.route.js'
 
 
 const app = express();
 
 
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000', 
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true, 
+    credentials: true,
 }));
 
 app.use(express.json());
@@ -24,6 +25,8 @@ app.get('/health', (req, res, next) => {
 })
 
 app.use('/api/v1/datasets', dataSetRouter);
+
+app.use('/api/v1/rules', ruleRouter);
 
 app.listen(process.env.PORT, async () => {
 

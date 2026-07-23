@@ -37,6 +37,8 @@ export default function StandaloneDatasetPage({ params }) {
         .map((q) => q.trim())
         .filter((q) => q.length > 0);
 
+    console.log(parsedQueries)
+
     const handleCopyQuery = () => {
         navigator.clipboard.writeText(rawQueries);
         setCopied(true);

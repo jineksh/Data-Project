@@ -3,13 +3,19 @@ import path from 'path'
 import { prisma } from '../config/databse.js'
 import Papa from 'papaparse';
 
-const rootDir = path.resolve("../../data");
-
+const rootDir = path.resolve(process.cwd(),'../data');
 
 
 export async function scanDataSetService() {
 
+
+    console.log('inside scanDataSetService');
+
     const cheak = fs.existsSync(rootDir);
+
+    console.log(rootDir);
+
+    console.log(cheak);
 
     if (cheak) {
 
@@ -17,9 +23,15 @@ export async function scanDataSetService() {
 
         for (const file of dataFiles) {
 
+            console.log('inside for Lopp');
+
+            
+
             const fullPath = path.join(rootDir, file);
 
-            console.log(fullPath);
+            console.log(fullPath)
+
+            
 
             const stats = fs.statSync(fullPath);
 
@@ -33,13 +45,15 @@ export async function scanDataSetService() {
                 const sizeInBytes = stats.size;
                 const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
 
+                console.log('file Data : ',sizeInBytes,sizeInMB)
+
                 const exitingFile = await prisma.dataset.findUnique({
                     where: {
-                        name: fileName
+                        name: fullName
                     }
                 });
 
-                if (!existingFile) {
+                if (!exitingFile) {
                     await prisma.dataset.create({
                         data: {
                             name: fullName,
@@ -60,7 +74,9 @@ export async function scanDataSetService() {
             orderBy: {
                 createdAt: 'desc',
             }
-        })
+        });
+
+        console.log(allDataSets);
 
         return allDataSets;
 

@@ -8,9 +8,10 @@ export async function scanDataSetController(req, res) {
     try {
         const datasets = await scanDataSetService();
 
+        
+
         return res.status(200).json({
             success: true,
-            count: datasets.length,
             message: "Datasets scanned and synced successfully",
             data: datasets
         });

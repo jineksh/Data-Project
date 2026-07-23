@@ -84,8 +84,8 @@ export function AppSideBar() {
                                             isActive={isActive}
                                             tooltip={item.title}
                                             className={`hover:bg-slate-800 hover:text-slate-100 transition-colors ${isActive
-                                                    ? "bg-emerald-500/10 text-emerald-400 font-medium border-r-2 border-emerald-400"
-                                                    : "text-slate-400"
+                                                ? "bg-emerald-500/10 text-emerald-400 font-medium border-r-2 border-emerald-400"
+                                                : "text-slate-400"
                                                 }`}
                                         >
                                             <Link href={item.url} className="flex items-center gap-2.5">

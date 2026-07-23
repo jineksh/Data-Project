@@ -3,7 +3,7 @@ import path from 'path'
 import { prisma } from '../config/databse.js'
 import Papa from 'papaparse';
 
-const rootDir = path.resolve(process.cwd(),'../data');
+const rootDir = path.resolve(process.cwd(), '../data');
 
 
 export async function scanDataSetService() {
@@ -25,13 +25,13 @@ export async function scanDataSetService() {
 
             console.log('inside for Lopp');
 
-            
+
 
             const fullPath = path.join(rootDir, file);
 
             console.log(fullPath)
 
-            
+
 
             const stats = fs.statSync(fullPath);
 
@@ -45,7 +45,7 @@ export async function scanDataSetService() {
                 const sizeInBytes = stats.size;
                 const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2) + " MB";
 
-                console.log('file Data : ',sizeInBytes,sizeInMB)
+                console.log('file Data : ', sizeInBytes, sizeInMB)
 
                 const exitingFile = await prisma.dataset.findUnique({
                     where: {
@@ -86,8 +86,6 @@ export async function scanDataSetService() {
 
 
 export async function getDataSetByIdService(dataSetId) {
-
-
     try {
         const dataSet = await prisma.dataset.findUnique({
             where: {
@@ -102,13 +100,19 @@ export async function getDataSetByIdService(dataSetId) {
         let sampleRows = [];
         let columns = [];
 
-        const filePath = path.join(rootDir, dataSet.fullName);
+        const fileName = dataSet.fullName || dataSet.name || `${dataSet.baseName}.${dataSet.ext}`;
+
+        if (!fileName) {
+            throw new Error(`File name could not be resolved for Dataset ID: ${dataSetId}`);
+        }
+
+        const filePath = path.join(rootDir, fileName);
 
         if (fs.existsSync(filePath)) {
+            const ext = (dataSet.ext || '').toLowerCase();
 
-            //json files
-            if (dataSet.ext === 'json') {
-                const fileContent = fs.readFileSync(fullPath, 'utf8');
+            if (ext === 'json') {
+                const fileContent = fs.readFileSync(filePath, 'utf8');
                 const parsedData = JSON.parse(fileContent);
 
                 if (Array.isArray(parsedData)) {
@@ -120,41 +124,28 @@ export async function getDataSetByIdService(dataSetId) {
                 }
             }
 
-            // 2. CSV / TSV Files
-            if (dataSet.ext === 'csv' || dataSet.ext === 'tsv') {
+            if (ext === 'csv' || ext === 'tsv') {
                 const fileContent = fs.readFileSync(filePath, 'utf8');
                 const parsedData = Papa.parse(fileContent, {
                     header: true,
                     skipEmptyLines: true,
-                    delimiter: dataset.ext === 'tsv' ? '\t' : ','
+                    delimiter: ext === 'tsv' ? '\t' : ','
                 });
 
                 columns = parsedData.meta.fields || [];
                 sampleRows = parsedData.data.slice(0, 10);
             }
-
-
         }
 
         return {
             ...dataSet,
+            sizeBytes: dataSet.sizeBytes ? dataSet.sizeBytes.toString() : "0",
             columns,
             sampleRows
-        }
+        };
 
-
-
-
+    } catch (err) {
+        console.error(`Error in getDataSetByIdService [ID: ${dataSetId}]:`, err.message);
+        throw err;
     }
-    catch (err) {
-
-        console.error(`Error in getDatasetByIdService [ID: ${id}]:`, error.message);
-
-        throw error;
-
-
-
-    }
-
-
 }

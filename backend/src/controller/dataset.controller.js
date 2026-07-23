@@ -37,6 +37,8 @@ export async function getDatasetByIdController(req, res) {
     try {
         const { id } = req.params;
 
+        console.log(typeof id)
+
         if (!id) {
             return res.status(400).json({
                 success: false,
@@ -44,7 +46,7 @@ export async function getDatasetByIdController(req, res) {
             });
         }
 
-        const datasetData = await getDataSetByIdService(id);
+        const datasetData = await getDataSetByIdService(Number(id));
 
         return res.status(200).json({
             success: true,

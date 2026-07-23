@@ -5,7 +5,7 @@ export async function getDataSetById(id) {
 
     try {
 
-        const response = await apiClient.get(`datasets/:${id}`);
+        const response = await apiClient.get(`datasets/${id}`);
 
         return response?.data?.data;
     }

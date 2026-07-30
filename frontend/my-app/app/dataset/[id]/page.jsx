@@ -24,6 +24,16 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { useGetDataSetById } from "../../../hooks/apis/dataset/useGetDataSetById.js";
 import { useCreateValidationRule } from '../../../hooks/apis/validationRules/useCreateValidationRule.js';
 
+
+const formatColumnName = (col) => {
+    if (!col) return "";
+    return col
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/\./g, '');
+};
+
 export default function StandaloneDatasetPage({ params }) {
     const resolvedParams = use(params);
     const id = resolvedParams?.id;
@@ -57,7 +67,6 @@ export default function StandaloneDatasetPage({ params }) {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    
     useEffect(() => {
         if (isSuccess) {
             setRawQueries('');
@@ -110,6 +119,7 @@ export default function StandaloneDatasetPage({ params }) {
 
     const columns = dataset.columns || [];
     const sampleRows = dataset.sampleRows || [];
+    const tableName = dataset.baseName || "table";
 
     return (
         <div className="min-h-screen bg-background text-foreground w-full p-6 space-y-6">
@@ -153,6 +163,7 @@ export default function StandaloneDatasetPage({ params }) {
                 </div>
             </div>
 
+            {/* Formatted Column Badges Section */}
             <Card className="border border-border bg-card p-4">
                 <div className="space-y-2.5">
                     <div className="flex items-center gap-2 text-xs font-semibold text-foreground font-sans">
@@ -162,16 +173,19 @@ export default function StandaloneDatasetPage({ params }) {
 
                     <div className="flex flex-wrap gap-1.5">
                         {columns.length > 0 ? (
-                            columns.map((col) => (
-                                <Badge
-                                    key={col}
-                                    variant="secondary"
-                                    className="text-[10px] font-mono py-0.5 px-2 bg-secondary/60 text-slate-300 border border-border/80 hover:border-emerald-500/40 transition-colors"
-                                >
-                                    <span className="text-emerald-400/80 mr-1">#</span>
-                                    {col}
-                                </Badge>
-                            ))
+                            columns.map((col) => {
+                                const cleanCol = formatColumnName(col);
+                                return (
+                                    <Badge
+                                        key={col}
+                                        variant="secondary"
+                                        className="text-[10px] font-mono py-0.5 px-2 bg-secondary/60 text-slate-300 border border-border/80 hover:border-emerald-500/40 transition-colors"
+                                    >
+                                        <span className="text-emerald-400/80 mr-1">#</span>
+                                        {cleanCol}
+                                    </Badge>
+                                );
+                            })
                         ) : (
                             <span className="text-xs font-mono text-muted-foreground">No columns detected</span>
                         )}
@@ -179,6 +193,7 @@ export default function StandaloneDatasetPage({ params }) {
                 </div>
             </Card>
 
+            {/* Sample Data Preview Section */}
             <Card className="border border-border bg-card overflow-hidden">
                 <CardHeader className="p-3.5 border-b border-border bg-muted/20">
                     <div className="flex items-center justify-between">
@@ -200,7 +215,7 @@ export default function StandaloneDatasetPage({ params }) {
                             <TableRow className="border-border hover:bg-transparent">
                                 {columns.map((col) => (
                                     <TableHead key={col} className="text-[11px] font-mono font-semibold text-slate-300 h-8">
-                                        {col}
+                                        {formatColumnName(col)}
                                     </TableHead>
                                 ))}
                             </TableRow>
@@ -228,6 +243,7 @@ export default function StandaloneDatasetPage({ params }) {
                 </CardContent>
             </Card>
 
+            {/* Batch Submitter Textarea Section */}
             <Card className="border border-border bg-card overflow-hidden">
                 <CardHeader className="p-3.5 border-b border-border bg-muted/30 flex flex-row items-center justify-between space-y-0">
                     <div className="flex items-center gap-2">
@@ -274,7 +290,7 @@ export default function StandaloneDatasetPage({ params }) {
                         onChange={(e) => setRawQueries(e.target.value)}
                         spellCheck={false}
                         rows={6}
-                        placeholder={`SELECT * FROM ${dataset.baseName || "table"} WHERE status = 'ACTIVE';\nALTER TABLE ${dataset.baseName || "table"} CHECK (price > 0);`}
+                        placeholder={`SELECT * FROM ${tableName} WHERE ${formatColumnName(columns[0]) || "status"} = 'ACTIVE';\nSELECT * FROM ${tableName} WHERE ${formatColumnName(columns[1]) || "price"} > 0;`}
                         className="w-full p-4 font-mono text-xs bg-transparent text-emerald-300 placeholder:text-slate-600 focus:outline-none resize-y border-none leading-relaxed"
                     />
 
